@@ -1,8 +1,8 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
-  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -34,5 +34,11 @@ export class AuthController {
   @UseGuards(AuthGuard())
   test(@GetUser() user: User) {
     console.log('user: ', user);
+  }
+
+  @Get('/get-user')
+  @UseGuards(AuthGuard())
+  getUser(@Body('id') id: number): Promise<User> {
+    return this.authService.getUser(id);
   }
 }

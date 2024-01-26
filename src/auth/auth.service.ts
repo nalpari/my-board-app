@@ -56,4 +56,13 @@ export class AuthService {
       throw new UnauthorizedException('Please check your login credentials');
     }
   }
+
+  async getUser(id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    console.log('user: ', user);
+    return user;
+  }
 }

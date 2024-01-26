@@ -4,6 +4,7 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './board.entity';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class BoardService {
@@ -12,8 +13,16 @@ export class BoardService {
     private boardRepository: Repository<Board>,
   ) {}
 
-  async getAllBoards(): Promise<Board[]> {
-    return await this.boardRepository.find({ order: { id: 'DESC' } });
+  async getAllBoards(user: User): Promise<Board[]> {
+    // const query = this.boardRepository.createQueryBuilder('board');
+    // query.where('board.userId = :userId', { userId: user.id });
+    // const boards = await query.getMany();
+    // return boards;
+    return await this.boardRepository
+      .createQueryBuilder('board')
+      .where('board.userId = :userId', { userId: user.id })
+      .getMany();
+    // return await this.boardRepository.find({ order: { id: 'DESC' } });
   }
 
   async getBoardById(id: number): Promise<Board> {
@@ -24,21 +33,25 @@ export class BoardService {
     return found;
   }
 
-  async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
+  async createBoard(
+    createBoardDto: CreateBoardDto,
+    user: User,
+  ): Promise<Board> {
     const { title, description } = createBoardDto;
 
     const board = this.boardRepository.create({
       title,
       description,
       status: BoardStatus.PUBLIC,
+      user,
     });
 
     await this.boardRepository.save(board);
     return board;
   }
 
-  async deleteBoard(id: number): Promise<void> {
-    const result = await this.boardRepository.delete(id);
+  async deleteBoard(id: number, user: User): Promise<void> {
+    const result = await this.boardRepository.delete({ id, user });
     if (result.affected === 0) {
       throw new NotFoundException(`Can not find board with id '${id}'`);
     }
